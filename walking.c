@@ -73,7 +73,7 @@ sem_t wait_car;                                                                 
 int food = 0;                                                                         /* Comida */
 pthread_cond_t cm = PTHREAD_COND_INITIALIZER;                                         /* Condicional para os sobreviventes homens */
 pthread_cond_t cw = PTHREAD_COND_INITIALIZER;                                         /* Condicional para os sobreviventes mulheres */
-int child_island, woman_island;                                                       /* Número de sobreviventes ainda no shopping */
+int child_shopping, woman_shopping;                                                   /* Número de sobreviventes ainda no shopping */
 int number_man, number_woman, number_child;                                           /* Número de sobreviventes de cada sexo e idade */
 int woman_on_line, man_on_line, car_waiting;                                          /* Homens, mulheres e carro esperando */
 int number_alive = SURVIVORS;                                                         /* Número de sobreviventes vivos no shopping */
@@ -294,7 +294,7 @@ char man_names[100][15] = {
 };
 
 /*
-Limpar a tela do terminal
+Limpa a tela do terminal
 */
 void clrscr(){
   system("clear");
