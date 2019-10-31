@@ -99,7 +99,7 @@ char woman_names[50][20] = {
     "Alba",                /*11*/
     "Aleteia",             /*12*/
     "Carla Koike",         /*13*/
-    "Carla Castanho",      /*14*/
+    "Papelita",            /*14*/
     "Demi Lovato",         /*15*/
     "Germana",             /*16*/
     "Maristela",           /*17*/
@@ -302,7 +302,7 @@ i = Estado atual do sobrevivente (0 - encurralado, 1 - resgatado , 2 - morto por
 i + 1 = Tipo de sobrevivente (0 - homem, 1 - mulher, 2 - criança)
 i + 2 = Número entre 0 e 49 que equivale ao nome do sobrevivente 
 
-Essa função inicializa os náufragos com seus respectivos argumentos
+Inicializa os sobreviventes com seus respectivos argumentos
 */
 void init_survivors(){
   int name, i, j;
@@ -454,3 +454,87 @@ void *car_rescuing(void *arg){
   }
   pthread_exit(0);
 }
+
+/*
+Diminui o número de mulheres e crianças totais na ilha
+*/
+void remove_waiting(int sex){
+  if(sex == 1){
+    woman_shopping--;
+  }
+  else if(sex == 2){
+    child_shopping--;
+  }
+}
+
+/*
+Escolhe um sobrevivente restante no shopping aleatoriamente e o mata 
+*/
+int kill_somebody(int id){
+  int somebody = rand() % SURVIVORS;
+  int i;
+  int found = 0;
+  int found_id = id;
+  for(i = somebody; i < SURVIVORS; i++){
+    if(surv_arg[i].status == 0){
+      if(surv_arg[i].id != id){
+        found = 1;
+        number_alive--;
+        surv_arg[i].status = 2;
+        remove_waiting(surv_arg[i].sex);
+        found_id = surv_arg[i].id;
+        break;
+      }
+    }
+  }
+  if(!found){
+    for(i = 0; i < somebody; i++){
+      if(surv_arg[i].status == 0){
+        if(surv_arg[i].id != id){
+          number_alive--;
+          surv_arg[i].status = 2;
+          remove_waiting(surv_arg[i].sex);
+          found_id = surv_arg[i].id;
+          break;
+        }
+      }
+    }
+  }
+  return found_id;
+}
+
+/*
+Comportamento das threads de crianças na fila de espera do carro
+*/
+void child_survivor(ptr_survivor_arg surv_arg){
+  pthread_mutex_lock(&line_lock);
+  if(surv_arg->status == 0){
+    if(car_waiting){
+      printf(BRIGHT_YELLOW "Sobrevivente %d (%s - CRIANÇA): Estou na fila do carro!\n" RESET, surv_arg->id, surv_arg->name);
+      sleep(1);
+      capacity--;
+      number_alive--;
+      surv_arg->status = 1;
+      remove_waiting(surv_arg->sex);
+      printf(BRIGHT_GREEN "Sobrevivente %d (%s - CRIANÇA): Entrei no carro, estou salvo! -- restam %d vagas no carro\n" RESET, surv_arg->id, surv_arg->name, capacity);
+      if(capacity == 0){
+        car_waiting = FALSE;
+        capacity = CAR_CAPACITY;
+        printf(BRIGHT_MAGENTA "Sobrevivente %d (%s - CRIANÇA): Galera... o carro lotou\n" RESET, surv_arg->id, surv_arg->name);
+        sem_post(&wait_car);
+      }
+      else if(number_alive == 0){
+        car_waiting = FALSE;
+        printf(BRIGHT_MAGENTA "Não restam sobreviventes na ilha\n" RESET);
+        sleep(2);
+        sem_post(&wait_car);
+      }
+      pthread_cond_broadcast(&cm);
+      pthread_cond_broadcast(&cw);
+    }
+  }
+  pthread_mutex_unlock(&line_lock);
+}
+
+
+
