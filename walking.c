@@ -74,7 +74,7 @@ int food = 0;                                                                   
 pthread_cond_t cm = PTHREAD_COND_INITIALIZER;                                         /* Condicional para os sobreviventes homens */
 pthread_cond_t cw = PTHREAD_COND_INITIALIZER;                                         /* Condicional para os sobreviventes mulheres */
 int child_shopping, woman_shopping;                                                   /* Número de sobreviventes ainda no shopping */
-int number_man, number_woman, number_child;                                           /* Número de sobreviventes de cada sexo e idade */
+int number_man, number_woman, number_child;                                           /* Número de sobreviventes de cada tipo */
 int woman_on_line, man_on_line, car_waiting;                                          /* Homens, mulheres e carro esperando */
 int number_alive = SURVIVORS;                                                         /* Número de sobreviventes vivos no shopping */
 int capacity = CAR_CAPACITY;                                                          /* Número de vagas restantes no carro */
@@ -377,4 +377,80 @@ void init_survivors(){
 
   child_shopping = number_child;
   woman_shopping = number_woman;
+}
+
+/*
+Imprime na tela a lista de sobreviventes
+*/
+void print_survivors(){
+  int length = SURVIVORS;
+  int i;
+
+  printf(BRIGHT_CYAN "-------------------------\n");
+  printf("LISTA DOS SOBREVIVENTES\n\n" RESET);
+  printf("Homens: %d -- Mulheres: %d -- Crianças: %d\n\n", number_man, number_woman, number_child);
+
+  for (i = 0; i < length; i++){
+  	printf(BRIGHT_YELLOW "Sobrevivente %d: %s " RESET, surv_arg[i].id, &surv_arg[i].name[0]);
+
+    switch (surv_arg[i].sex){
+      case 0:
+        printf("(Homem) ");
+        break;
+
+      case 1:
+        printf("(Mulher) ");
+        break;
+
+      case 2:
+        printf("(Criança) ");
+        break;
+
+      default:
+        break;
+    }
+
+    printf("- ");
+    print_status(surv_arg[i].status);
+    printf("\n");
+  }
+  printf(BRIGHT_CYAN "-------------------------\n\n" RESET);
+
+  printf("\n\nPRESSIONE ENTER PARA CONTINUAR\n");
+  getchar();
+}
+
+/*
+Carro:
+status = estado atual do carro (0 - resgatando, 1 - parado no shopping , 2 - terminou resgate)
+Essa função representa o comportamento da thread carro
+*/
+void *car_rescuing(void *arg){
+  ptr_rescue_car_arg rescue_car_arg = (ptr_rescue_car_arg)arg;
+
+  while(rescue_car_arg->status!=2 && number_alive > 0){
+    printf(BRIGHT_CYAN "\nCarro de resgate %d: Saindo do Local Seguro em direção ao shopping\n\n" RESET, rescue_car_arg->id);
+    sleep(15);
+    car_waiting = TRUE;
+    rescue_car_arg->status = 1;
+    if(number_alive == 0){
+      printf(BRIGHT_CYAN "\nCarro de Resgate %d: Cheguei no shopping, mas infelizmente não existe mais ninguém aqui...\n\n" RESET, rescue_car_arg->id);
+      sleep(2);
+    }
+    else{
+      printf(BRIGHT_CYAN "\nCarro de Resgate %d: Cheguei no shopping, esperando sobreviventes embarcarem...\n\n" RESET, rescue_car_arg->id);
+    }
+    sem_wait(&wait_car);
+    printf(BRIGHT_CYAN "\nCarro de Resgate %d: Voltando ao Local Seguro!\n\n" RESET, rescue_car_arg->id);
+    if(number_alive == 0){
+      rescue_car_arg->status = 2;
+    }
+    else{
+      rescue_car_arg->status = 0;
+      sleep(15);
+      printf(BRIGHT_CYAN "\nCarro de Resgate %d: Cheguei no Local Seguro, desembarcando os sobreviventes em segurança!\n\n" RESET, rescue_car_arg->id);
+      sleep(2);
+    }
+  }
+  pthread_exit(0);
 }
