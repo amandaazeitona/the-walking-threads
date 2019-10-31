@@ -26,20 +26,20 @@ Bibliotecas:
 /*
 Cores:
 */
-#define COLOR_GREEN "\x1b[32m"
-#define COLOR_BLACK "\x1b[30m"
-#define COLOR_YELLOW "\x1b[33m"
-#define COLOR_MAGENTA "\x1b[35m"
-#define COLOR_BLUE "\x1b[34m"
-#define COLOR_RED "\x1b[31m"
-#define COLOR_CYAN "\x1b[36m"
-#define COLOR_BRIGHT_YELLOW "\x1b[93m"
-#define COLOR_BRIGHT_CYAN "\x1b[96m"
-#define COLOR_RESET "\x1b[0m"
-#define COLOR_BRIGHT_RED "\x1b[91m"
-#define COLOR_BRIGHT_GREEN "\x1b[92m"
-#define COLOR_BRIGHT_BLUE "\x1b[94m"
-#define COLOR_BRIGHT_MAGENTA "\x1b[95m"
+#define GREEN "\x1b[32m"
+#define BLACK "\x1b[30m"
+#define YELLOW "\x1b[33m"
+#define MAGENTA "\x1b[35m"
+#define BLUE "\x1b[34m"
+#define RED "\x1b[31m"
+#define CYAN "\x1b[36m"
+#define BRIGHT_YELLOW "\x1b[93m"
+#define BRIGHT_CYAN "\x1b[96m"
+#define RESET "\x1b[0m"
+#define BRIGHT_RED "\x1b[91m"
+#define BRIGHT_GREEN "\x1b[92m"
+#define BRIGHT_BLUE "\x1b[94m"
+#define BRIGHT_MAGENTA "\x1b[95m"
 
 /*
 Sobreviventes:
@@ -49,7 +49,7 @@ Status = estado atual do sobrevivente (0 - encurralado, 1 - resgatado , 2 - mort
 */
 typedef struct{
   int id;
-  char name[15];
+  char name[20];
   int sex;
   int status;
 } survivor_arg, *ptr_survivor_arg;
@@ -79,12 +79,12 @@ int woman_on_line, man_on_line, car_waiting;                                    
 int number_alive = SURVIVORS;                                                         /* Número de sobreviventes vivos no shopping */
 int capacity = CAR_CAPACITY;                                                          /* Número de vagas restantes no carro */
 int id_kill;                                                                          /* ID do sobrevivente que morreu */
-int used_man_names[100], used_woman_names[100];                                       /* Vetor de nomes usados */
+int v_man_names[50], v_woman_names[50], v_child_names[100];                           /* Vetores de nomes usados */
 
 /*
 Nomes femininos
 */
-char woman_names[100][15] = {
+char woman_names[50][20] = {
     "Amanda",              /*0*/
     "Maria Fernanda",      /*1*/
     "Letícia",             /*2*/
@@ -135,62 +135,68 @@ char woman_names[100][15] = {
     "Eveline",             /*47*/
     "Iana",                /*48*/
     "Eurides",             /*49*/
-    "Tina",                /*50*/
-    "",       /*51*/
-    "",     /*52*/
-    "",       /*53*/
-    "",    /*54*/
-    "",       /*55*/
-    "",    /*56*/
-    "",    /*57*/
-    "",    /*58*/
-    "",     /*59*/
-    "",     /*60*/
-    "",        /*61*/
-    "",    /*62*/
-    "",    /*63*/
-    "",   /*64*/
-    "",      /*65*/
-    "",        /*66*/
-    "", /*67*/
-    "",       /*68*/
-    "",       /*69*/
-    "",     /*70*/
-    "",        /*71*/
-    "",      /*72*/
-    "",     /*73*/
-    "",     /*74*/
-    "",      /*75*/
-    "",    /*76*/
-    "",    /*77*/
-    "",      /*78*/
-    "",   /*79*/
-    "",       /*80*/
-    "",    /*81*/
-    "",     /*82*/
-    "",     /*83*/
-    "",     /*84*/
-    "",     /*85*/
-    "", /*86*/
-    "",        /*87*/
-    "",       /*88*/
-    "",      /*89*/
-    "",       /*90*/
-    "",     /*91*/
-    "",      /*92*/
-    "",     /*93*/
-    "",       /*94*/
-    "",    /*95*/
-    "",     /*96*/
-    "",      /*97*/
-    "",      /*98*/
-    ""     /*99*/
 };
 
 /*
 Nomes masculinos
 */
-char man_names[100][15] = {
+char man_names[50][20] = {
+    "Severino",             /*0*/
+    "Martin",               /*1*/
+    "Jesus",                /*2*/
+    "Karl",                 /*3*/
+    "Buddha",               /*4*/
+    "Maomé",                /*5*/
+    "Anakin",               /*6*/
+    "Ernesto",              /*7*/
+    "Yuri",                 /*8*/
+    "Felipe",               /*9*/
+    "Frederico",            /*10*/
+    "Pedro",                /*11*/
+    "Gabriel",              /*12*/
+    "Ítalo",                /*13*/
+    "Igor",                 /*14*/
+    "Gustavo",              /*15*/
+    "Diones",               /*16*/
+    "Alan",                 /*17*/
+    "Paulo",                /*18*/
+    "Vinícius",             /*19*/
+    "Zeca Pagodinho",       /*20*/
+    "Bob Marley",           /*21*/
+    "Nicholas",             /*22*/
+    "Lucas",                /*23*/
+    "Vitor",                /*24*/
+    "Diogo",                /*25*/
+    "Andrio",               /*26*/
+    "Cebolinha",            /*27*/
+    "Wlad",                 /*28*/
+    "Cascão",               /*29*/
+    "Renan",                /*30*/
+    "Marcus",               /*31*/
+    "Leonardo",             /*32*/
+    "Augustus",             /*33*/
+    "Heitor",               /*34*/
+    "Enzo",                 /*35*/
+    "Sasuke",               /*36*/
+    "Itachi",               /*37*/
+    "Kakashi",              /*38*/
+    "Adão",                 /*39*/
+    "Roberto",              /*40*/
+    "Rogério",              /*41*/
+    "Joshua",               /*42*/
+    "Caetano",              /*43*/
+    "Jorge",                /*44*/
+    "Jacques",              /*45*/
+    "Danilo",               /*46*/
+    "Joel",                 /*47*/
+    "Light",                /*48*/
+    "Alfredo"               /*49*/
+};
+
+/*
+Nomes crianças
+*/
+char child_names[100][20] = {
     "Phelps",               /*0*/
     "Jeremias",             /*1*/
     "Thales",               /*2*/
@@ -241,56 +247,55 @@ char man_names[100][15] = {
     "Andy",                 /*47*/
     "Diego",                /*48*/
     "Bolsominion",          /*49*/
-    "Severino",             /*50*/
-    "",        /*51*/
-    "",         /*52*/
-    "",           /*53*/
-    "",        /*54*/
-    "",         /*55*/
-    "",          /*56*/
-    "",          /*57*/
-    "",   /*58*/
-    "",          /*59*/
-    "",       /*60*/
-    "",         /*61*/
-    "",          /*62*/
-    "",            /*63*/
-    "",          /*64*/
-    "",           /*65*/
-    "",       /*66*/
-    "",    /*67*/
-    "",         /*68*/
-    "",        /*69*/
-    "",        /*70*/
-    "",   /*71*/
-    "",          /*72*/
-    "",   /*73*/
-    "",       /*74*/
-    "",           /*75*/
-    "",       /*76*/
-    "",        /*77*/
-    "",        /*78*/
-    "",          /*79*/
-    "",   /*80*/
-    "",     /*81*/
-    "",        /*82*/
-    "",           /*83*/
-    "",        /*84*/
-    "",          /*85*/
-    "",       /*86*/
-    "",         /*87*/
-    "",           /*88*/
-    "",         /*89*/
-    "",        /*90*/
-    "",        /*91*/
-    "",     /*92*/
-    "",         /*93*/
-    "",        /*94*/
-    "",       /*95*/
-    "",         /*96*/
-    "",     /*97*/
-    "",          /*98*/
-    ""            /*99*/
+	"Tina",                 /*50*/
+    "Cate",                 /*51*/
+    "Natalie",              /*52*/
+    "Emma",                 /*53*/
+    "Sandy",                /*54*/
+    "Sasha",                /*55*/
+    "Pabblo Vittar",        /*56*/
+    "Anitta",               /*57*/
+    "Larissa",              /*58*/
+    "Martina",              /*59*/
+    "Lurdinha",             /*60*/
+    "Melissa",              /*61*/
+    "Bruna",                /*62*/
+    "Thainá",               /*63*/
+    "Ada",                  /*64*/
+    "Catarina",             /*65*/
+    "Juliana",              /*66*/
+    "Rayanny",              /*67*/
+    "Manoela",              /*68*/
+    "Ana",                  /*69*/
+    "Amy",                  /*70*/
+    "Sarah",                /*71*/
+    "Priscila",             /*72*/
+    "Luiza",                /*73*/
+    "Mônica",               /*74*/
+    "Magali",               /*75*/
+    "Joaquina",             /*76*/
+    "Valentina",            /*77*/
+    "Aurora",               /*79*/
+    "Ariel",                /*80*/
+    "Sakura",               /*81*/
+    "Fergie",               /*82*/
+    "Hannah Montana",       /*83*/
+    "Zoey",                 /*84*/
+    "Carly",                /*85*/
+    "Samantha",             /*86*/
+    "Arya",                 /*87*/
+    "Eva",                  /*88*/
+    "Cleide",               /*89*/
+    "Meire",                /*90*/
+    "Fabiana",              /*91*/
+    "Cecília",              /*92*/
+    "Lilian",               /*93*/
+    "Delfina",              /*94*/
+    "Joyce",                /*95*/
+    "Auxiliadora",          /*96*/
+    "Eliana",               /*97*/
+    "Xuxa",                 /*98*/
+    "Angélica"              /*99*/
 };
 
 /*
@@ -307,19 +312,19 @@ void print_status(int status){
   
   switch (status){
     case 0:
-      printf(COLOR_BRIGHT_YELLOW "ENCURRALADO" COLOR_RESET);
+      printf(BRIGHT_YELLOW "ENCURRALADO" RESET);
       break;
 
     case 1:
-      printf(COLOR_BRIGHT_GREEN "RESGATADO" COLOR_RESET);
+      printf(BRIGHT_GREEN "RESGATADO" RESET);
       break;
 
     case 2:
-      printf(COLOR_BRIGHT_RED "MORTO - Virou comida de zumbi!" COLOR_RESET);
+      printf(BRIGHT_RED "MORTO - Virou comida de zumbi!" RESET);
       break;
 
     case 3:
-      printf(COLOR_BRIGHT_MAGENTA "MORTO - Morreu de fome!" COLOR_RESET);
+      printf(BRIGHT_MAGENTA "MORTO - Morreu de fome!" RESET);
       break;
 
     default:
@@ -330,11 +335,98 @@ void print_status(int status){
 /*
 Inicializa os vetores de nomes
 */
-void initialize_used_names(){
+void init_v_names(){
   int i;
 
-  for(i=0;i<100;i++){
-    used_woman_names[i] = 0;
-    used_man_names[i] = 0;
+  for(i=0;i<50;i++){
+    v_woman_names[i] = 0;
+    v_man_names[i] = 0;
   }
+
+  for(i=0;i<100;i++){
+    v_child_names[i] = 0;
+  }
+}
+
+/*
+De acordo com os índices:
+i = Estado atual do sobrevivente (0 - encurralado, 1 - resgatado , 2 - morto por zumbi, 3 - morto de fome)
+i + 1 = Sexo e idade do sobrevivente (0 - homem, 1 - mulher, 2 - criança)
+i + 2 = Número entre 0 e 99 que equivale ao nome do sobrevivente 
+
+Essa função inicializa os náufragos com seus respectivos argumentos
+*/
+void init_survivors(){
+  int length = SURVIVORS;
+  int name, name_child, i, j;
+
+  number_woman = 0;
+  number_man = 0;
+  number_child = 0;
+  init_v_names();
+
+  srand(time(NULL));
+
+  for(i=0;i<length;i++){
+    surv_arg[i].id = i;
+    surv_arg[i].status = 0;
+    surv_arg[i].sex = (rand() % 2);
+    switch (surv_arg[i].sex){
+      case 0:
+        number_man++;
+        break;
+
+      case 1:
+        number_woman++;
+        break;
+
+      case 2:
+        number_child++;
+        break;
+
+      default:
+        break;
+    }
+
+    name = (rand() % 50);
+    name_child = (rand() % 100);
+    j = 0;
+    if(surv_arg[i].sex == 0){
+    	while(v_man_names[name] == 1){
+    		name = (rand() % 50);
+    	}
+    	while(man_names[name][j] != '\0'){
+        	surv_arg[i].name[j] = man_names[name][j];
+        	j++;
+      	}
+    	v_man_names[name] = 1;
+    }
+    else{
+    	if(surv_arg[i].sex == 1) {
+	    	while(v_woman_names[name] == 1){
+	    		name = (rand() % 50);
+	      	}
+	    	while(woman_names[name][j] != '\0'){
+	        	surv_arg[i].name[j] = woman_names[name][j];
+	        	j++;
+	      	}
+	    	v_woman_names[name] = 1;
+    	}
+
+    	if(surv_arg[i].sex == 2) {
+	    	while(v_child_names[name] == 1){
+	    		name = (rand() % 100);
+	      	}
+	    	while(child_names[name][j] != '\0'){
+	        	surv_arg[i].name[j] = child_names[name][j];
+	        	j++;
+	      	}
+	    	v_child_names[name] = 1;
+    	}
+    }
+    surv_arg[i].name[j] = '\0';
+  }
+
+  child_shopping = number_child;
+  woman_shopping = number_woman;
 }
