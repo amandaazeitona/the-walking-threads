@@ -18,7 +18,7 @@ Bibliotecas:
 #define TRUE 1          /* Verdadeiro */
 #define FALSE 0         /* Falso */
 #define SURVIVORS 20    /* Número inicial de sobreviventes encurralados no shopping */
-#define HUMAN_FOOD 200  /* Quantidade de porções que um sobrevivente morto adulto gera */
+#define ADULT_FOOD 200  /* Quantidade de porções que um sobrevivente morto adulto gera */
 #define KID_FOOD 100    /* Quantidade de porções que um sobrevivente morto criança gera */
 #define CAR_CAPACITY 3 	/* Número de vagas no carro */
 #define EAT 20          /* Quantidade de porções comidas de uma vez por cada zumbi */
@@ -79,7 +79,7 @@ int woman_on_line, man_on_line, car_waiting;                                    
 int number_alive = SURVIVORS;                                                         /* Número de sobreviventes vivos no shopping */
 int capacity = CAR_CAPACITY;                                                          /* Número de vagas restantes no carro */
 int id_kill;                                                                          /* ID do sobrevivente que morreu */
-int v_man_names[50], v_woman_names[50], v_child_names[100];                           /* Vetores de nomes usados */
+int v_man_names[50], v_woman_names[50], v_child_names[50];                            /* Vetores de nomes usados */
 
 /*
 Nomes femininos
@@ -220,82 +220,33 @@ char child_names[100][20] = {
     "Gondim",               /*20*/
     "Lucero",               /*21*/
     "Li",                   /*22*/
-    "Mandelli",             /*23*/
+    "Roberlândio",          /*23*/
     "Pai Mei",              /*24*/
-    "Lamar",                /*25*/
-    "Boni",                 /*26*/
-    "Vander",               /*27*/
-    "Bill",                 /*28*/
-    "Budd",                 /*29*/
-    "Ron",                  /*30*/
-    "Roberlândio",          /*31*/
-    "Miguel",               /*32*/
-    "Bernardo",             /*33*/
-    "Rodolfo",              /*34*/
-    "Jomas",                /*35*/
-    "Weslei",               /*36*/
-    "Arthur",               /*37*/
-    "Naruto",               /*38*/
-    "Mr. Darcy",            /*39*/
-    "Seth",                 /*40*/
-    "Ryan",                 /*41*/
-    "Troy",                 /*42*/
-    "Chuck",                /*43*/
-    "Vincent",              /*44*/
-    "Jules",                /*45*/
-    "Hans",                 /*46*/
-    "Andy",                 /*47*/
-    "Diego",                /*48*/
-    "Bolsominion",          /*49*/
-	"Tina",                 /*50*/
-    "Cate",                 /*51*/
-    "Natalie",              /*52*/
-    "Emma",                 /*53*/
-    "Sandy",                /*54*/
-    "Sasha",                /*55*/
-    "Pabblo Vittar",        /*56*/
-    "Anitta",               /*57*/
-    "Larissa",              /*58*/
-    "Martina",              /*59*/
-    "Lurdinha",             /*60*/
-    "Melissa",              /*61*/
-    "Bruna",                /*62*/
-    "Thainá",               /*63*/
-    "Ada",                  /*64*/
-    "Catarina",             /*65*/
-    "Juliana",              /*66*/
-    "Rayanny",              /*67*/
-    "Manoela",              /*68*/
-    "Ana",                  /*69*/
-    "Amy",                  /*70*/
-    "Sarah",                /*71*/
-    "Priscila",             /*72*/
-    "Luiza",                /*73*/
-    "Mônica",               /*74*/
-    "Magali",               /*75*/
-    "Joaquina",             /*76*/
-    "Valentina",            /*77*/
-    "Aurora",               /*79*/
-    "Ariel",                /*80*/
-    "Sakura",               /*81*/
-    "Fergie",               /*82*/
-    "Hannah Montana",       /*83*/
-    "Zoey",                 /*84*/
-    "Carly",                /*85*/
-    "Samantha",             /*86*/
-    "Arya",                 /*87*/
-    "Eva",                  /*88*/
-    "Cleide",               /*89*/
-    "Meire",                /*90*/
-    "Fabiana",              /*91*/
-    "Cecília",              /*92*/
-    "Lilian",               /*93*/
-    "Delfina",              /*94*/
-    "Joyce",                /*95*/
-    "Auxiliadora",          /*96*/
-    "Eliana",               /*97*/
-    "Xuxa",                 /*98*/
-    "Angélica"              /*99*/
+	"Tina",                 /*25*/
+    "Cate",                 /*26*/
+    "Natalie",              /*27*/
+    "Emma",                 /*28*/
+    "Sandy",                /*29*/
+    "Sasha",                /*30*/
+    "Pabblo Vittar",        /*31*/
+    "Anitta",               /*32*/
+    "Larissa",              /*33*/
+    "Martina",              /*34*/
+    "Lurdinha",             /*35*/
+    "Melissa",              /*36*/
+    "Bruna",                /*37*/
+    "Thainá",               /*38*/
+    "Ada",                  /*39*/
+    "Catarina",             /*40*/
+    "Juliana",              /*41*/
+    "Rayanny",              /*42*/
+    "Manoela",              /*43*/
+    "Ana",                  /*44*/
+    "Amy",                  /*45*/
+    "Sarah",                /*46*/
+    "Priscila",             /*47*/
+    "Luiza",                /*48*/
+    "Sakura",               /*49*/
 };
 
 /*
@@ -341,9 +292,6 @@ void init_v_names(){
   for(i=0;i<50;i++){
     v_woman_names[i] = 0;
     v_man_names[i] = 0;
-  }
-
-  for(i=0;i<100;i++){
     v_child_names[i] = 0;
   }
 }
@@ -351,14 +299,14 @@ void init_v_names(){
 /*
 De acordo com os índices:
 i = Estado atual do sobrevivente (0 - encurralado, 1 - resgatado , 2 - morto por zumbi, 3 - morto de fome)
-i + 1 = Sexo e idade do sobrevivente (0 - homem, 1 - mulher, 2 - criança)
-i + 2 = Número entre 0 e 99 que equivale ao nome do sobrevivente 
+i + 1 = Tipo de sobrevivente (0 - homem, 1 - mulher, 2 - criança)
+i + 2 = Número entre 0 e 49 que equivale ao nome do sobrevivente 
 
 Essa função inicializa os náufragos com seus respectivos argumentos
 */
 void init_survivors(){
+  int name, i, j;
   int length = SURVIVORS;
-  int name, name_child, i, j;
 
   number_woman = 0;
   number_man = 0;
@@ -389,12 +337,12 @@ void init_survivors(){
     }
 
     name = (rand() % 50);
-    name_child = (rand() % 100);
     j = 0;
     if(surv_arg[i].sex == 0){
     	while(v_man_names[name] == 1){
     		name = (rand() % 50);
     	}
+
     	while(man_names[name][j] != '\0'){
         	surv_arg[i].name[j] = man_names[name][j];
         	j++;
@@ -415,7 +363,7 @@ void init_survivors(){
 
     	if(surv_arg[i].sex == 2) {
 	    	while(v_child_names[name] == 1){
-	    		name = (rand() % 100);
+	    		name = (rand() % 50);
 	      	}
 	    	while(child_names[name][j] != '\0'){
 	        	surv_arg[i].name[j] = child_names[name][j];
