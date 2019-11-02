@@ -18,10 +18,10 @@ Bibliotecas:
 #define TRUE 1          /* Verdadeiro */
 #define FALSE 0         /* Falso */
 #define SURVIVORS 20    /* Número inicial de sobreviventes encurralados no shopping */
-#define ADULT_FOOD 200  /* Quantidade de porções que um sobrevivente morto adulto gera */
-#define KID_FOOD 100    /* Quantidade de porções que um sobrevivente morto criança gera */
-#define CAR_CAPACITY 3 	/* Número de vagas no carro */
-#define EAT 20          /* Quantidade de porções comidas de uma vez por cada zumbi */
+#define ADULT_FOOD 200  /* Porções de comida que um adulto morto gera */
+#define KID_FOOD 100    /* Porções de comida que uma criança morta gera */
+#define CAR_CAPACITY 3 	/* Número de vagas disponíveis no carro inicialmente */
+#define EAT 20          /* Quantidade de porções comidas de uma vez por um zumbi */
 
 /*
 Cores:
@@ -43,9 +43,9 @@ Cores:
 
 /*
 Sobreviventes:
-Nome = nome do sobrevivente 
+Nome = nome do sobrevivente
 Sexo = sexo e idade do sobrevivente (0 - homem, 1 - mulher, 2 - criança)
-Status = estado atual do sobrevivente (0 - encurralado, 1 - resgatado , 2 - morto por zumbi, 3 - morto de fome)
+Status = estado atual do sobrevivente (0 - encurralado, 1 - resgatado , 2 - morto por zumbi, 3 - morto esperando resgate)
 */
 typedef struct{
   int id;
@@ -56,7 +56,7 @@ typedef struct{
 
 /*
 Carro:
-Status = estado atual do carro (0 - resgatando, 1 - para no shopping , 2 - terminou resgate)
+Status = estado atual do carro (0 - resgatando, 1 - parado no shopping , 2 - terminou resgate)
 */
 typedef struct{
   int id;
@@ -93,7 +93,7 @@ char woman_names[50][20] = {
     "Lana Del Rey",        /*5*/
     "Bella",               /*6*/
     "Jéssica",             /*7*/
-    "Shoshana",  		   /*8*/
+    "Shoshana",  		       /*8*/
     "Leia",                /*9*/
     "Dilma",       	       /*10*/
     "Alba",                /*11*/
@@ -194,9 +194,9 @@ char man_names[50][20] = {
 };
 
 /*
-Nomes crianças
+Nomes infantis
 */
-char child_names[100][20] = {
+char child_names[50][20] = {
     "Phelps",               /*0*/
     "Jeremias",             /*1*/
     "Thales",               /*2*/
@@ -222,7 +222,7 @@ char child_names[100][20] = {
     "Li",                   /*22*/
     "Roberlândio",          /*23*/
     "Pai Mei",              /*24*/
-	"Tina",                 /*25*/
+	  "Tina",                 /*25*/
     "Cate",                 /*26*/
     "Natalie",              /*27*/
     "Emma",                 /*28*/
@@ -275,7 +275,7 @@ void print_status(int status){
       break;
 
     case 3:
-      printf(BRIGHT_MAGENTA "MORTO - Morreu de fome!" RESET);
+      printf(BRIGHT_MAGENTA "MORTO - Morreu esperando resgate!" RESET);
       break;
 
     default:
@@ -298,7 +298,7 @@ void init_v_names(){
 
 /*
 De acordo com os índices:
-i = Estado atual do sobrevivente (0 - encurralado, 1 - resgatado , 2 - morto por zumbi, 3 - morto de fome)
+i = Estado atual do sobrevivente (0 - encurralado, 1 - resgatado , 2 - morto por zumbi, 3 - morto esperando resgate)
 i + 1 = Tipo de sobrevivente (0 - homem, 1 - mulher, 2 - criança)
 i + 2 = Número entre 0 e 49 que equivale ao nome do sobrevivente 
 
@@ -318,7 +318,7 @@ void init_survivors(){
   for(i=0;i<length;i++){
     surv_arg[i].id = i;
     surv_arg[i].status = 0;
-    surv_arg[i].sex = (rand() % 2);
+    surv_arg[i].sex = (rand() % 3);
     switch (surv_arg[i].sex){
       case 0:
         number_man++;
@@ -386,35 +386,35 @@ void print_survivors(){
   int length = SURVIVORS;
   int i;
 
-  printf(BRIGHT_CYAN "-------------------------\n");
-  printf("LISTA DOS SOBREVIVENTES\n\n" RESET);
-  printf("Homens: %d -- Mulheres: %d -- Crianças: %d\n\n", number_man, number_woman, number_child);
+  printf(BRIGHT_CYAN "---------------------------\n");
+  printf("SOBREVIVENTES\n\n" RESET);
+  printf("Homens: %d ---- Mulheres: %d ---- Crianças: %d\n\n", number_man, number_woman, number_child);
 
   for (i = 0; i < length; i++){
   	printf(BRIGHT_YELLOW "Sobrevivente %d: %s " RESET, surv_arg[i].id, &surv_arg[i].name[0]);
 
     switch (surv_arg[i].sex){
       case 0:
-        printf("(Homem) ");
+        printf("|Homem| ");
         break;
 
       case 1:
-        printf("(Mulher) ");
+        printf("|Mulher| ");
         break;
 
       case 2:
-        printf("(Criança) ");
+        printf("|Criança| ");
         break;
 
       default:
         break;
     }
 
-    printf("- ");
+    printf("-- ");
     print_status(surv_arg[i].status);
     printf("\n");
   }
-  printf(BRIGHT_CYAN "-------------------------\n\n" RESET);
+  printf(BRIGHT_CYAN "---------------------------\n\n" RESET);
 
   printf("\n\nPRESSIONE ENTER PARA CONTINUAR\n");
   getchar();
@@ -434,21 +434,21 @@ void *car_rescuing(void *arg){
     car_waiting = TRUE;
     rescue_car_arg->status = 1;
     if(number_alive == 0){
-      printf(BRIGHT_CYAN "\nCarro de Resgate %d: Cheguei no shopping, mas infelizmente não existe mais ninguém aqui...\n\n" RESET, rescue_car_arg->id);
+      printf(BRIGHT_CYAN "\nCarro de Resgate %d: Cheguei no shopping, porém não tem mais ninguém aqui\n\n" RESET, rescue_car_arg->id);
       sleep(2);
     }
     else{
-      printf(BRIGHT_CYAN "\nCarro de Resgate %d: Cheguei no shopping, esperando sobreviventes embarcarem...\n\n" RESET, rescue_car_arg->id);
+      printf(BRIGHT_CYAN "\nCarro de Resgate %d: Cheguei no shopping, esperando sobreviventes embarcarem\n\n" RESET, rescue_car_arg->id);
     }
     sem_wait(&wait_car);
-    printf(BRIGHT_CYAN "\nCarro de Resgate %d: Voltando ao Local Seguro!\n\n" RESET, rescue_car_arg->id);
+    printf(BRIGHT_CYAN "\nCarro de Resgate %d: Voltando para o Local Seguro\n\n" RESET, rescue_car_arg->id);
     if(number_alive == 0){
       rescue_car_arg->status = 2;
     }
     else{
       rescue_car_arg->status = 0;
       sleep(15);
-      printf(BRIGHT_CYAN "\nCarro de Resgate %d: Cheguei no Local Seguro, desembarcando os sobreviventes em segurança!\n\n" RESET, rescue_car_arg->id);
+      printf(BRIGHT_CYAN "\nCarro de Resgate %d: Cheguei no Local Seguro, desembarcando os sobreviventes resgatados em segurança\n\n" RESET, rescue_car_arg->id);
       sleep(2);
     }
   }
@@ -456,7 +456,7 @@ void *car_rescuing(void *arg){
 }
 
 /*
-Diminui o número de mulheres e crianças totais na ilha
+Diminui o número de mulheres e crianças no shopping
 */
 void remove_waiting(int sex){
   if(sex == 1){
@@ -468,39 +468,21 @@ void remove_waiting(int sex){
 }
 
 /*
-Escolhe um sobrevivente restante no shopping aleatoriamente e o mata 
+Escolhe um sobrevivente aleatoriamente para virar comida de zumbi
 */
 int kill_somebody(int id){
   int somebody = rand() % SURVIVORS;
   int i;
-  int found = 0;
-  int found_id = id;
   for(i = somebody; i < SURVIVORS; i++){
     if(surv_arg[i].status == 0){
       if(surv_arg[i].id != id){
-        found = 1;
         number_alive--;
         surv_arg[i].status = 2;
         remove_waiting(surv_arg[i].sex);
-        found_id = surv_arg[i].id;
         break;
       }
     }
   }
-  if(!found){
-    for(i = 0; i < somebody; i++){
-      if(surv_arg[i].status == 0){
-        if(surv_arg[i].id != id){
-          number_alive--;
-          surv_arg[i].status = 2;
-          remove_waiting(surv_arg[i].sex);
-          found_id = surv_arg[i].id;
-          break;
-        }
-      }
-    }
-  }
-  return found_id;
 }
 
 /*
@@ -510,7 +492,7 @@ void woman_survivor(ptr_survivor_arg survivor_arg){
   pthread_mutex_lock(&line_lock);
   if(survivor_arg->status == 0){
     if(car_waiting){
-      printf(BRIGHT_YELLOW "Sobrevivente %d (%s - MULHER): Estou na fila do carro!\n" RESET, survivor_arg->id, survivor_arg->name);
+      printf(BRIGHT_YELLOW "Sobrevivente %d |%s - MULHER|: Estou na fila de resgate\n" RESET, survivor_arg->id, survivor_arg->name);
       sleep(1);
     }
     while (child_shopping > 0 && car_waiting){
@@ -522,16 +504,16 @@ void woman_survivor(ptr_survivor_arg survivor_arg){
       number_alive--;
       survivor_arg->status = 1;
       remove_waiting(survivor_arg->sex);
-      printf(BRIGHT_GREEN "Sobrevivente %d (%s - MULHER): Entrei no carro, estou salva! -- restam %d vagas no carro\n" RESET, survivor_arg->id, survivor_arg->name, capacity);
+      printf(BRIGHT_GREEN "Sobrevivente %d |%s - MULHER|: Entrei no carro e estou salva! Agora restam apenas %d vagas no carro\n" RESET, survivor_arg->id, survivor_arg->name, capacity);
       if(capacity == 0){
         car_waiting = FALSE;
         capacity = CAR_CAPACITY;
-        printf(BRIGHT_MAGENTA "Sobrevivente %d (%s - MULHER): Galera... o carro lotou\n" RESET, survivor_arg->id, survivor_arg->name);
+        printf(BRIGHT_MAGENTA "Sobrevivente %d |%s - MULHER|: Deu ruim, o carro lotou!\n" RESET, survivor_arg->id, survivor_arg->name);
         sem_post(&wait_car);
       }
       else if(number_alive == 0){
         car_waiting = FALSE;
-        printf(BRIGHT_MAGENTA "Não restam sobreviventes na ilha\n" RESET);
+        printf(BRIGHT_MAGENTA "Não existem mais sobreviventes no shopping\n" RESET);
         sleep(2);
         sem_post(&wait_car);
       }
@@ -549,22 +531,22 @@ void child_survivor(ptr_survivor_arg survivor_arg){
   pthread_mutex_lock(&line_lock);
   if(survivor_arg->status == 0){
     if(car_waiting){
-      printf(BRIGHT_YELLOW "Sobrevivente %d (%s - CRIANÇA): Estou na fila do carro!\n" RESET, survivor_arg->id, survivor_arg->name);
+      printf(BRIGHT_YELLOW "Sobrevivente %d |%s - CRIANÇA|: Estou na fila de resgate\n" RESET, survivor_arg->id, survivor_arg->name);
       sleep(1);
       capacity--;
       number_alive--;
       survivor_arg->status = 1;
       remove_waiting(survivor_arg->sex);
-      printf(BRIGHT_GREEN "Sobrevivente %d (%s - CRIANÇA): Entrei no carro, estou salvo! -- restam %d vagas no carro\n" RESET, survivor_arg->id, survivor_arg->name, capacity);
+      printf(BRIGHT_GREEN "Sobrevivente %d |%s - CRIANÇA|: Entrei no carro e estou salvo! Agora restam apenas %d vagas no carro\n" RESET, survivor_arg->id, survivor_arg->name, capacity);
       if(capacity == 0){
         car_waiting = FALSE;
         capacity = CAR_CAPACITY;
-        printf(BRIGHT_MAGENTA "Sobrevivente %d (%s - CRIANÇA): Galera... o carro lotou\n" RESET, survivor_arg->id, survivor_arg->name);
+        printf(BRIGHT_MAGENTA "Sobrevivente %d |%s - CRIANÇA|: Deu ruim, o carro lotou!\n" RESET, survivor_arg->id, survivor_arg->name);
         sem_post(&wait_car);
       }
       else if(number_alive == 0){
         car_waiting = FALSE;
-        printf(BRIGHT_MAGENTA "Não restam sobreviventes na ilha\n" RESET);
+        printf(BRIGHT_MAGENTA "Não existem mais sobreviventes no shopping\n" RESET);
         sleep(2);
         sem_post(&wait_car);
       }
@@ -582,7 +564,7 @@ void man_survivor(ptr_survivor_arg survivor_arg){
   pthread_mutex_lock(&line_lock);
   if(survivor_arg->status == 0){
     if(car_waiting){
-      printf(BRIGHT_YELLOW "Sobrevivente %d (%s - HOMEM): Estou na fila do carro!\n" RESET, survivor_arg->id, survivor_arg->name);
+      printf(BRIGHT_YELLOW "Sobrevivente %d |%s - HOMEM|: Estou na fila de resgate\n" RESET, survivor_arg->id, survivor_arg->name);
       sleep(1);
     }
     while ((child_shopping > 0 || woman_shopping > 0) && car_waiting){
@@ -594,16 +576,16 @@ void man_survivor(ptr_survivor_arg survivor_arg){
       number_alive--;
       survivor_arg->status = 1;
       remove_waiting(survivor_arg->sex);
-      printf(BRIGHT_GREEN "Sobrevivente %d (%s - HOMEM): Entrei no carro, estou salvo! -- restam %d vagas no carro\n" RESET, survivor_arg->id, survivor_arg->name, capacity);
+      printf(BRIGHT_GREEN "Sobrevivente %d |%s - HOMEM|: Entrei no carro e estou salvo! Agora restam apenas %d vagas no carro\n" RESET, survivor_arg->id, survivor_arg->name, capacity);
       if(capacity == 0){
         car_waiting = FALSE;
         capacity = CAR_CAPACITY;
-        printf(BRIGHT_MAGENTA "Sobrevivente %d (%s - HOMEM): Galera... o carro lotou\n" RESET, survivor_arg->id, survivor_arg->name);
+        printf(BRIGHT_MAGENTA "Sobrevivente %d |%s - HOMEM|: Deu ruim, o carro lotou!\n" RESET, survivor_arg->id, survivor_arg->name);
         sem_post(&wait_car);
       }
       else if(number_alive == 0){
         car_waiting = FALSE;
-        printf(BRIGHT_MAGENTA "Não restam sobreviventes na ilha\n" RESET);
+        printf(BRIGHT_MAGENTA "Não existem mais sobreviventes no shopping\n" RESET);
         sleep(2);
         sem_post(&wait_car);
       }
@@ -616,12 +598,9 @@ void man_survivor(ptr_survivor_arg survivor_arg){
 
 /*
 Índices:
-i = Estado atual do sobrevivente (0 - encurralado, 1 - resgatado , 2 - morto por zumbi, 3 - morto de fome)
-i + 1 = Tipo de sobrevivente (0 - Homem, 1 - Mulher, 2 - Criança)
+i = Estado atual do sobrevivente (0 - encurralado, 1 - resgatado , 2 - morto por zumbi, 3 - morto esperando resgate)
+i + 1 = Tipo de sobrevivente (0 - homem, 1 - mulher, 2 - criança)
 i + 2 = numero entre 0 e 49 equivalente ao nome do sobrevivente
-
-Essa função representa o comportamento das threads de sobreviventes no shopping, seja esperando o carro
-ou dividindo a comidaa e matando outros sobreviventes para gerar mais comida
 */
 void *surviving(void *arg) {
   ptr_survivor_arg survivor_arg = (ptr_survivor_arg)arg;
@@ -648,34 +627,34 @@ void *surviving(void *arg) {
       }
     }
 
-    /* Sobreviventes comendo e se matando */
+    /* Sobreviventes esperando resgate e sacrificando seus colegas */
     pthread_mutex_lock(&l);
     if(survivor_arg->status == 0 && !car_waiting){
       if(food > 0){
-        printf("Sobrevivente %d (%s): Vou comer... ainda existem %d porções de food\n", survivor_arg->id, survivor_arg->name, food);
+        printf("Sobrevivente %d | %s: Esperando resgate, ainda existem %d porções de comida para os zumbis\n", survivor_arg->id, survivor_arg->name, food);
         sleep(1);
         food-=EAT;
       }
       else{
-        printf(BRIGHT_MAGENTA "Sobrevivente %d (%s): EITA... existem %d porções de comida... alguém precisa ser sacrificado!\n" RESET, survivor_arg->id, survivor_arg->name, food);
+        printf(BRIGHT_MAGENTA "Sobrevivente %d | %s: Agora existem %d porções de comida, alguém precisa ser sacrificado!\n" RESET, survivor_arg->id, survivor_arg->name, food);
         id_kill = kill_somebody(survivor_arg->id);
         if(id_kill == survivor_arg->id){
-          printf(BRIGHT_MAGENTA "Infelizmente, não tem mais ninguém...\n" RESET);
+          printf(BRIGHT_MAGENTA "Não tem mais ninguém\n" RESET);
           sleep(2);
           number_alive--;
           survivor_arg->status = 3;
           remove_waiting(survivor_arg->sex);
           sem_post(&wait_car);
           car_waiting = FALSE;
-          printf(BRIGHT_RED "Sobrevivente %d (%s) morreu de fome!\n" RESET, survivor_arg->id, survivor_arg->name);
+          printf(BRIGHT_RED "Sobrevivente |%d| %s morreu esperando o resgate\n" RESET, survivor_arg->id, survivor_arg->name);
         }
         else{
           if(surv_arg[id_kill].sex == 2){
-            printf(BRIGHT_RED "Sobrevivente %d (%s) foi morto por Sobrevivente %d (%s)... Conseguiu-se %d porções de comida a mais! -- restam: %d\n" RESET, surv_arg[id_kill].id, surv_arg[id_kill].name, survivor_arg->id, survivor_arg->name, KID_FOOD, number_alive);
+            printf(BRIGHT_RED "Sobrevivente |%d| %s foi jogado aos zumbis pelo sobrevivente |%d| %s. Somou-se %d porções de comida e agora restam %d sobreviventes\n" RESET, surv_arg[id_kill].id, surv_arg[id_kill].name, survivor_arg->id, survivor_arg->name, KID_FOOD, number_alive);
             food += KID_FOOD;
           }
           else{
-            printf(BRIGHT_RED "Sobrevivente %d (%s) foi morto por Sobrevivente %d (%s)... Conseguiu-se %d porções de comida a mais! -- restam: %d\n" RESET, surv_arg[id_kill].id, surv_arg[id_kill].name, survivor_arg->id, survivor_arg->name, ADULT_FOOD, number_alive);
+            printf(BRIGHT_RED "Sobrevivente |%d| %s foi jogado aos zumbis pelo sobrevivente |%d| %s. Somou-se %d porções de comida e agora restam %d sobreviventes\n" RESET, surv_arg[id_kill].id, surv_arg[id_kill].name, survivor_arg->id, survivor_arg->name, ADULT_FOOD, number_alive);
             food += ADULT_FOOD;
           }
         }
@@ -694,9 +673,9 @@ Gera a porção de comida inicial no shopping
 */
 void init_food(){
   srand(time(NULL));
-  food = (rand() % 6) * 100;
+  food = (rand() % 7) * 100;
   if (food == 0){
-    food = 20;
+    food = 30;
   }
 }
 
@@ -709,7 +688,7 @@ void init_globals(){
 }
 
 /*
-Inicializa as threads carro e sobreviventes e inicia a simulação de encurralamento
+Inicializa as threads e inicia a simulação
 */
 int disaster(){
   int i;
@@ -717,13 +696,13 @@ int disaster(){
   init_globals();
   sem_init(&wait_car, 0, 0);
 
-  printf(BRIGHT_CYAN "-------------------------\n");
-  printf("\nACIDENTE!!!!!\n\n" RESET);
-  printf("Um grupo de sobreviventes está preso em um shopping...\n");
-  printf("Os %d sobreviventes foram até o shopping mais próximo e aguardam resgate...\n", SURVIVORS);
+  printf(BRIGHT_CYAN "---------------------------\n");
+  printf("\nAPOCALIPSE ZUMBI\n\n" RESET);
+  printf("Um grupo de %d sobreviventes está se escondendo de uma horda de zumbis durante o apocalipse\n", SURVIVORS);
+  printf("Eles estão encurralados em um shopping e precisam ser resgatados pelas pessoas que vivem no Local Seguro\n");
   init_food();
-  printf("Um total equivalente à %d porções de comida estava no shopping...\n", food);
-  printf(BRIGHT_RED "Quantos sobreviverão???\n\n" RESET);
+  printf("Os zumbis tem um estoque de %d porções de comida\n", food);
+  printf(BRIGHT_RED "Quem sobreviverá?\n\n" RESET);
 
   init_survivors();
   print_survivors(0);
@@ -755,9 +734,9 @@ int main(){
   char input;
 
 
-  printf(BRIGHT_CYAN "-------------------------\n");
+  printf(BRIGHT_CYAN "---------------------------\n");
   printf("\nTHE WALKING THREADS\n\n");
-  printf("-------------------------\n\n" RESET);
+  printf("---------------------------\n\n" RESET);
 
   
   do{
@@ -767,7 +746,7 @@ int main(){
     getchar();
 
     while(input != 's' && input != 'S' && input!= 'n' && input != 'N'){
-      printf("\nInsira apenas os caracteres 'S' ou 'N'\n");
+      printf("\nInsira os caracteres 's/S' ou 'n/N'\n");
       printf("Deseja iniciar a simulação? (s/n)\n");
       scanf("%c", &input);
       getchar();
