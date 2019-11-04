@@ -42,7 +42,7 @@ TRABALHO DE PROGRAMAÇÃO CONCORRENTE - 2/2019
 Sobreviventes:
 Nome = nome do sobrevivente
 Sexo = sexo e idade do sobrevivente (0 - homem, 1 - mulher, 2 - criança)
-Status = estado atual do sobrevivente (0 - encurralado, 1 - resgatado , 2 - morto por zumbi, 3 - morto esperando resgate)
+Status = estado atual do sobrevivente (0 - encurralado, 1 - resgatado , 2 - morto por outro sobrevivente, 3 - morto esperando resgate)
 */
 typedef struct{
   int id;
@@ -263,7 +263,7 @@ void print_status(int status){
       break;
 
     case 3:
-      printf(BRIGHT_MAGENTA "MORTO - Morreu esperando de fome esperando o resgate!" RESET);
+      printf(BRIGHT_MAGENTA "MORTO - Morreu esperando o resgate!" RESET);
       break;
 
     default:
@@ -284,7 +284,7 @@ void init_v_names(){
 
 /*
 De acordo com os índices:
-i = Estado atual do sobrevivente (0 - encurralado, 1 - resgatado , 2 - morto por zumbi, 3 - morto esperando resgate)
+i = Estado atual do sobrevivente (0 - encurralado, 1 - resgatado , 2 - morto por outro sobrevivente, 3 - morto esperando resgate)
 i + 1 = Tipo de sobrevivente (0 - homem, 1 - mulher, 2 - criança)
 i + 2 = Número entre 0 e 49 que equivale ao nome do sobrevivente 
 
