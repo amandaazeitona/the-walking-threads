@@ -1,13 +1,12 @@
 /*
 ALUNOS: AMANDA OLIVEIRA ALVES - 15/0116276
+        FILLYPE ALVES DO NASCIMENTO - 16/0070431
 PROFESSOR: JEREMIAS
 TRABALHO DE PROGRAMAÇÃO CONCORRENTE - 2/2019
 */
 
 
-/* 
-Bibliotecas:
-*/
+// Bibliotecas:
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
@@ -15,17 +14,15 @@ Bibliotecas:
 #include <semaphore.h>
 #include <string.h>
 
-#define TRUE 1          /* Verdadeiro */
-#define FALSE 0         /* Falso */
-#define SURVIVORS 20    /* Número inicial de sobreviventes encurralados no shopping */
-#define ADULT_FOOD 200  /* Porções de comida que um adulto morto gera */
-#define KID_FOOD 100    /* Porções de comida que uma criança morta gera */
-#define CAR_CAPACITY 3 	/* Número de vagas disponíveis no carro inicialmente */
-#define EAT 20          /* Quantidade de porções comidas de uma vez por um zumbi */
+#define TRUE 1          // Verdadeiro
+#define FALSE 0         // Falso
+#define SURVIVORS 20    // Número inicial de sobreviventes encurralados no shopping
+#define ADULT_FOOD 200  // Porções de comida que um adulto morto gera
+#define KID_FOOD 100    // Porções de comida que uma criança morta gera
+#define CAR_CAPACITY 4 	// Número de vagas disponíveis no carro inicialmente
+#define EAT 20          // Quantidade de porções comidas de uma vez por um zumbi
 
-/*
-Cores:
-*/
+// Cores:
 #define GREEN "\x1b[32m"
 #define BLACK "\x1b[30m"
 #define YELLOW "\x1b[33m"
@@ -63,202 +60,193 @@ typedef struct{
   int status;
 } rescue_car_arg, *ptr_rescue_car_arg;
 
-pthread_t survivor[SURVIVORS];                                                        /* Thread dos sobreviventes */
-pthread_t car;                                                                        /* Thread do carro */
-survivor_arg surv_arg[SURVIVORS];                                                     /* Argumento dos sobreviventes */
-rescue_car_arg car_arg;                                                               /* Argumento do carro */
-pthread_mutex_t l = PTHREAD_MUTEX_INITIALIZER;                                        /* Lock para os sobreviventes */
-pthread_mutex_t line_lock = PTHREAD_MUTEX_INITIALIZER;                                /* Lock para fila do carro */
-sem_t wait_car;                                                                       /* Semáforos para o carro */
-int food = 0;                                                                         /* Comida */
-pthread_cond_t cm = PTHREAD_COND_INITIALIZER;                                         /* Condicional para os sobreviventes homens */
-pthread_cond_t cw = PTHREAD_COND_INITIALIZER;                                         /* Condicional para os sobreviventes mulheres */
-int child_shopping, woman_shopping;                                                   /* Número de sobreviventes ainda no shopping */
-int number_man, number_woman, number_child;                                           /* Número de sobreviventes de cada tipo */
-int woman_on_line, man_on_line, car_waiting;                                          /* Homens, mulheres e carro esperando */
-int number_alive = SURVIVORS;                                                         /* Número de sobreviventes vivos no shopping */
-int capacity = CAR_CAPACITY;                                                          /* Número de vagas restantes no carro */
-int id_kill;                                                                          /* ID do sobrevivente que morreu */
-int v_man_names[50], v_woman_names[50], v_child_names[50];                            /* Vetores de nomes usados */
+pthread_t survivor[SURVIVORS];                                                        // Thread dos sobreviventes
+pthread_t car;                                                                        // Thread do carro
+survivor_arg surv_arg[SURVIVORS];                                                     // Argumento dos sobreviventes
+rescue_car_arg car_arg;                                                               // Argumento do carro
+pthread_mutex_t l = PTHREAD_MUTEX_INITIALIZER;                                        // Lock para os sobreviventes
+pthread_mutex_t line_lock = PTHREAD_MUTEX_INITIALIZER;                                // Lock para fila do carro
+sem_t wait_car;                                                                       // Semáforos para o carro
+int food = 0;                                                                         // Comida
+pthread_cond_t cm = PTHREAD_COND_INITIALIZER;                                         // Condicional para os sobreviventes homens
+pthread_cond_t cw = PTHREAD_COND_INITIALIZER;                                         // Condicional para os sobreviventes mulheres
+int child_shopping, woman_shopping;                                                   // Número de sobreviventes ainda no shopping
+int number_man, number_woman, number_child;                                           // Número de sobreviventes de cada tipo
+int woman_on_line, man_on_line, car_waiting;                                          // Homens, mulheres e carro esperando
+int v_man_on_line[20], v_woman_on_line[20], v_child_on_line[20];                      // Vetores de sobreviventes na fila do carro
+int number_alive = SURVIVORS;                                                         // Número de sobreviventes vivos no shopping
+int capacity = CAR_CAPACITY;                                                          // Número de vagas restantes no carro
+int id_kill;                                                                          // ID do sobrevivente que morreu
+int v_man_names[50], v_woman_names[50], v_child_names[50];                            // Vetores de nomes usados
 
-/*
-Nomes femininos
-*/
+// Nomes femininos
 char woman_names[50][20] = {
-    "Amanda",              /*0*/
-    "Maria Fernanda",      /*1*/
-    "Letícia",             /*2*/
-    "Ariana Grande",       /*3*/
-    "Marina",              /*4*/
-    "Lana Del Rey",        /*5*/
-    "Bella",               /*6*/
-    "Jéssica",             /*7*/
-    "Shoshana",  		       /*8*/
-    "Leia",                /*9*/
-    "Dilma",       	       /*10*/
-    "Alba",                /*11*/
-    "Aleteia",             /*12*/
-    "Carla Koike",         /*13*/
-    "Papelita",            /*14*/
-    "Demi Lovato",         /*15*/
-    "Germana",             /*16*/
-    "Maristela",           /*17*/
-    "Genaína",             /*18*/
-    "Florence",            /*19*/
-    "Rita Lee",            /*20*/
-    "Edna",                /*21*/
-    "Velma",               /*22*/
-    "Padmé",               /*23*/
-    "Sharpay",             /*24*/
-    "Joelma",              /*25*/
-    "Lurdinha",            /*26*/
-    "Focátia",             /*27*/
-    "Mulan",               /*28*/
-    "Angelina",            /*29*/
-    "Rihanna",             /*30*/
-    "Mia",                 /*31*/
-    "Samara",              /*32*/
-    "Mariana",             /*33*/
-    "Hermione",            /*34*/
-    "Alcione",             /*35*/
-    "Margot",              /*36*/
-    "Beatrix",             /*37*/
-    "Vernita",             /*38*/
-    "Elle",                /*39*/
-    "O-Ren Ishii",         /*40*/
-    "Leslie",              /*41*/
-    "April",               /*42*/
-    "Andréia",             /*43*/
-    "Myllena",             /*44*/
-    "Vitória",             /*45*/
-    "Scarlett",            /*46*/
-    "Eveline",             /*47*/
-    "Iana",                /*48*/
-    "Eurides",             /*49*/
+    "Amanda",              // 0
+    "Maria Fernanda",      // 1
+    "Letícia",             // 2
+    "Ariana Grande",       // 3
+    "Marina",              // 4
+    "Lana Del Rey",        // 5
+    "Bella",               // 6
+    "Jéssica",             // 7
+    "Shoshana",  		       // 8
+    "Leia",                // 9
+    "Dilma",       	       // 10
+    "Alba",                // 11
+    "Aleteia",             // 12
+    "Carla Koike",         // 13
+    "Papelita",            // 14
+    "Demi Lovato",         // 15
+    "Germana",             // 16
+    "Maristela",           // 17
+    "Genaína",             // 18
+    "Florence",            // 19
+    "Rita Lee",            // 20
+    "Edna",                // 21
+    "Velma",               // 22
+    "Padmé",               // 23
+    "Sharpay",             // 24
+    "Joelma",              // 25
+    "Lurdinha",            // 26
+    "Focátia",             // 27
+    "Mulan",               // 28
+    "Angelina",            // 29
+    "Rihanna",             // 30
+    "Mia",                 // 31
+    "Samara",              // 32
+    "Mariana",             // 33
+    "Hermione",            // 34
+    "Alcione",             // 35
+    "Margot",              // 36
+    "Beatrix",             // 37
+    "Vernita",             // 38
+    "Elle",                // 39
+    "O-Ren Ishii",         // 40
+    "Leslie",              // 41
+    "April",               // 42
+    "Andréia",             // 43
+    "Myllena",             // 44
+    "Vitória",             // 45
+    "Scarlett",            // 46
+    "Eveline",             // 47
+    "Iana",                // 48
+    "Eurides",             // 49
 };
 
-/*
-Nomes masculinos
-*/
+// Nomes masculinos
 char man_names[50][20] = {
-    "Severino",             /*0*/
-    "Martin",               /*1*/
-    "Jesus",                /*2*/
-    "Karl",                 /*3*/
-    "Buddha",               /*4*/
-    "Maomé",                /*5*/
-    "Anakin",               /*6*/
-    "Ernesto",              /*7*/
-    "Yuri",                 /*8*/
-    "Felipe",               /*9*/
-    "Frederico",            /*10*/
-    "Pedro",                /*11*/
-    "Gabriel",              /*12*/
-    "Ítalo",                /*13*/
-    "Igor",                 /*14*/
-    "Gustavo",              /*15*/
-    "Diones",               /*16*/
-    "Alan",                 /*17*/
-    "Paulo",                /*18*/
-    "Vinícius",             /*19*/
-    "Zeca Pagodinho",       /*20*/
-    "Bob Marley",           /*21*/
-    "Nicholas",             /*22*/
-    "Lucas",                /*23*/
-    "Vitor",                /*24*/
-    "Diogo",                /*25*/
-    "Andrio",               /*26*/
-    "Cebolinha",            /*27*/
-    "Wlad",                 /*28*/
-    "Cascão",               /*29*/
-    "Renan",                /*30*/
-    "Marcus",               /*31*/
-    "Leonardo",             /*32*/
-    "Augustus",             /*33*/
-    "Heitor",               /*34*/
-    "Enzo",                 /*35*/
-    "Sasuke",               /*36*/
-    "Itachi",               /*37*/
-    "Kakashi",              /*38*/
-    "Adão",                 /*39*/
-    "Roberto",              /*40*/
-    "Rogério",              /*41*/
-    "Joshua",               /*42*/
-    "Caetano",              /*43*/
-    "Jorge",                /*44*/
-    "Jacques",              /*45*/
-    "Danilo",               /*46*/
-    "Joel",                 /*47*/
-    "Light",                /*48*/
-    "Alfredo"               /*49*/
+    "Severino",             // 0
+    "Martin",               // 1
+    "Jesus",                // 2
+    "Karl",                 // 3
+    "Buddha",               // 4
+    "Maomé",                // 5
+    "Anakin",               // 6
+    "Ernesto",              // 7
+    "Yuri",                 // 8
+    "Felipe",               // 9
+    "Frederico",            // 10
+    "Pedro",                // 11
+    "Gabriel",              // 12
+    "Ítalo",                // 13
+    "Igor",                 // 14
+    "Gustavo",              // 15
+    "Diones",               // 16
+    "Alan",                 // 17
+    "Paulo",                // 18
+    "Vinícius",             // 19
+    "Zeca Pagodinho",       // 20
+    "Bob Marley",           // 21
+    "Nicholas",             // 22
+    "Lucas",                // 23
+    "Vitor",                // 24
+    "Diogo",                // 25
+    "Andrio",               // 26
+    "Cebolinha",            // 27
+    "Wlad",                 // 28
+    "Cascão",               // 29
+    "Renan",                // 30
+    "Marcus",               // 31
+    "Leonardo",             // 32
+    "Augustus",             // 33
+    "Heitor",               // 34
+    "Enzo",                 // 35
+    "Sasuke",               // 36
+    "Itachi",               // 37
+    "Kakashi",              // 38
+    "Adão",                 // 39
+    "Roberto",              // 40
+    "Rogério",              // 41
+    "Joshua",               // 42
+    "Caetano",              // 43
+    "Jorge",                // 44
+    "Jacques",              // 45
+    "Danilo",               // 46
+    "Joel",                 // 47
+    "Light",                // 48
+    "Alfredo"               // 49
 };
 
-/*
-Nomes infantis
-*/
+// Nomes infantis
 char child_names[50][20] = {
-    "Phelps",               /*0*/
-    "Jeremias",             /*1*/
-    "Thales",               /*2*/
-    "Pin",                  /*3*/
-    "Jader",                /*4*/
-    "Ícaro",                /*5*/
-    "Diegod",               /*6*/
-    "Brinquedo",            /*7*/
-    "Kevin",                /*8*/
-    "Homem Aranha",         /*9*/
-    "Ladeira",              /*10*/
-    "Lula",                 /*11*/
-    "Zaghetto",             /*12*/
-    "Drummond",             /*13*/
-    "Bruno",                /*14*/
-    "Dibio",                /*15*/
-    "Alchieri",             /*16*/
-    "Astrix",               /*17*/
-    "Vidal",                /*18*/
-    "Flavio",               /*19*/
-    "Gondim",               /*20*/
-    "Lucero",               /*21*/
-    "Li",                   /*22*/
-    "Roberlândio",          /*23*/
-    "Pai Mei",              /*24*/
-	  "Tina",                 /*25*/
-    "Cate",                 /*26*/
-    "Natalie",              /*27*/
-    "Emma",                 /*28*/
-    "Sandy",                /*29*/
-    "Sasha",                /*30*/
-    "Pabblo Vittar",        /*31*/
-    "Anitta",               /*32*/
-    "Larissa",              /*33*/
-    "Martina",              /*34*/
-    "Lurdinha",             /*35*/
-    "Melissa",              /*36*/
-    "Bruna",                /*37*/
-    "Thainá",               /*38*/
-    "Ada",                  /*39*/
-    "Catarina",             /*40*/
-    "Juliana",              /*41*/
-    "Rayanny",              /*42*/
-    "Manoela",              /*43*/
-    "Ana",                  /*44*/
-    "Amy",                  /*45*/
-    "Sarah",                /*46*/
-    "Priscila",             /*47*/
-    "Luiza",                /*48*/
-    "Sakura",               /*49*/
+    "Phelps",               // 0
+    "Jeremias",             // 1
+    "Thales",               // 2
+    "Pin",                  // 3
+    "Jader",                // 4
+    "Ícaro",                // 5
+    "Diegod",               // 6
+    "Brinquedo",            // 7
+    "Kevin",                // 8
+    "Homem Aranha",         // 9
+    "Ladeira",              // 10
+    "Lula",                 // 11
+    "Zaghetto",             // 12
+    "Drummond",             // 13
+    "Bruno",                // 14
+    "Dibio",                // 15
+    "Alchieri",             // 16
+    "Astrix",               // 17
+    "Vidal",                // 18
+    "Flavio",               // 19
+    "Gondim",               // 20
+    "Lucero",               // 21
+    "Li",                   // 22
+    "Roberlândio",          // 23
+    "Pai Mei",              // 24
+	  "Tina",                 // 25
+    "Cate",                 // 26
+    "Natalie",              // 27
+    "Emma",                 // 28
+    "Sandy",                // 29
+    "Sasha",                // 30
+    "Pabblo Vittar",        // 31
+    "Anitta",               // 32
+    "Larissa",              // 33
+    "Martina",              // 34
+    "Lurdinha",             // 35
+    "Melissa",              // 36
+    "Bruna",                // 37
+    "Thainá",               // 38
+    "Ada",                  // 39
+    "Catarina",             // 40
+    "Juliana",              // 41
+    "Rayanny",              // 42
+    "Manoela",              // 43
+    "Ana",                  // 44
+    "Amy",                  // 45
+    "Sarah",                // 46
+    "Priscila",             // 47
+    "Luiza",                // 48
+    "Sakura",               // 49
 };
 
-/*
-Limpa a tela do terminal
-*/
-void clrscr(){
+// Limpa a tela do terminal
+void clear_console(){
   system("clear");
 }
 
-/*
-Imprime na tela o status de cada sobrevivente
-*/
+// Imprime na tela o status de cada sobrevivente
 void print_status(int status){
   
   switch (status){
@@ -271,11 +259,11 @@ void print_status(int status){
       break;
 
     case 2:
-      printf(BRIGHT_RED "MORTO - Virou comida de zumbi!" RESET);
+      printf(BRIGHT_RED "MORTO - Virou comida do grupo!" RESET);
       break;
 
     case 3:
-      printf(BRIGHT_MAGENTA "MORTO - Morreu esperando resgate!" RESET);
+      printf(BRIGHT_MAGENTA "MORTO - Morreu esperando de fome esperando o resgate!" RESET);
       break;
 
     default:
@@ -283,9 +271,7 @@ void print_status(int status){
   }
 }
 
-/*
-Inicializa os vetores de nomes
-*/
+// Inicializa os vetores de nomes
 void init_v_names(){
   int i;
 
@@ -311,6 +297,7 @@ void init_survivors(){
   number_woman = 0;
   number_man = 0;
   number_child = 0;
+
   init_v_names();
 
   srand(time(NULL));
@@ -319,6 +306,7 @@ void init_survivors(){
     surv_arg[i].id = i;
     surv_arg[i].status = 0;
     surv_arg[i].sex = (rand() % 3);
+
     switch (surv_arg[i].sex){
       case 0:
         number_man++;
@@ -338,39 +326,49 @@ void init_survivors(){
 
     name = (rand() % 50);
     j = 0;
+
     if(surv_arg[i].sex == 0){
+
     	while(v_man_names[name] == 1){
     		name = (rand() % 50);
     	}
 
     	while(man_names[name][j] != '\0'){
-        	surv_arg[i].name[j] = man_names[name][j];
-        	j++;
-      	}
+        surv_arg[i].name[j] = man_names[name][j];
+        j++;
+      }
+
     	v_man_names[name] = 1;
-    }
-    else{
+    } else{
+
     	if(surv_arg[i].sex == 1) {
+
 	    	while(v_woman_names[name] == 1){
-	    		name = (rand() % 50);
-	      	}
+          name = (rand() % 50);
+        }
+
 	    	while(woman_names[name][j] != '\0'){
-	        	surv_arg[i].name[j] = woman_names[name][j];
-	        	j++;
-	      	}
+          surv_arg[i].name[j] = woman_names[name][j];
+          j++;
+        }
+
 	    	v_woman_names[name] = 1;
     	}
 
     	if(surv_arg[i].sex == 2) {
+
 	    	while(v_child_names[name] == 1){
 	    		name = (rand() % 50);
-	      	}
+        }
+
 	    	while(child_names[name][j] != '\0'){
-	        	surv_arg[i].name[j] = child_names[name][j];
-	        	j++;
-	      	}
+          surv_arg[i].name[j] = child_names[name][j];
+          j++;
+        }
+
 	    	v_child_names[name] = 1;
     	}
+
     }
     surv_arg[i].name[j] = '\0';
   }
@@ -379,9 +377,7 @@ void init_survivors(){
   woman_shopping = number_woman;
 }
 
-/*
-Imprime na tela a lista de sobreviventes
-*/
+// Imprime na tela a lista de sobreviventes
 void print_survivors(){
   int length = SURVIVORS;
   int i;
@@ -414,10 +410,8 @@ void print_survivors(){
     print_status(surv_arg[i].status);
     printf("\n");
   }
-  printf(BRIGHT_CYAN "---------------------------\n\n" RESET);
 
-  printf("\n\nPRESSIONE ENTER PARA CONTINUAR\n");
-  getchar();
+  printf(BRIGHT_CYAN "---------------------------\n\n" RESET);
 }
 
 /*
@@ -431,70 +425,77 @@ void *car_rescuing(void *arg){
   while(rescue_car_arg->status!=2 && number_alive > 0){
     printf(BRIGHT_CYAN "\nCarro de resgate %d: Saindo do Local Seguro em direção ao shopping\n\n" RESET, rescue_car_arg->id);
     sleep(15);
+
     car_waiting = TRUE;
     rescue_car_arg->status = 1;
+
     if(number_alive == 0){
-      printf(BRIGHT_CYAN "\nCarro de Resgate %d: Cheguei no shopping, porém não tem mais ninguém aqui\n\n" RESET, rescue_car_arg->id);
+      printf(BRIGHT_CYAN "\nCarro de Resgate %d: Cheguei no shopping mas num tem ninguém aqui não, vô meter o pé, vlw flw\n\n" RESET, rescue_car_arg->id);
       sleep(2);
-    }
-    else{
+    } else{
       printf(BRIGHT_CYAN "\nCarro de Resgate %d: Cheguei no shopping, esperando sobreviventes embarcarem\n\n" RESET, rescue_car_arg->id);
     }
+
     sem_wait(&wait_car);
     printf(BRIGHT_CYAN "\nCarro de Resgate %d: Voltando para o Local Seguro\n\n" RESET, rescue_car_arg->id);
+
     if(number_alive == 0){
       rescue_car_arg->status = 2;
-    }
-    else{
+    } else{
       rescue_car_arg->status = 0;
+
       sleep(15);
       printf(BRIGHT_CYAN "\nCarro de Resgate %d: Cheguei no Local Seguro, desembarcando os sobreviventes resgatados em segurança\n\n" RESET, rescue_car_arg->id);
       sleep(2);
     }
   }
+
   pthread_exit(0);
 }
 
-/*
-Diminui o número de mulheres e crianças no shopping
-*/
+// Diminui o número de mulheres e crianças no shopping
 void remove_waiting(int sex){
   if(sex == 1){
     woman_shopping--;
-  }
-  else if(sex == 2){
+  } else if(sex == 2){
     child_shopping--;
   }
 }
 
-/*
-Escolhe um sobrevivente aleatoriamente para virar comida de zumbi
-*/
+// Escolhe um sobrevivente aleatoriamente para virar comida
 int kill_somebody(int id){
   int somebody = rand() % SURVIVORS;
   int i;
   for(i = somebody; i < SURVIVORS; i++){
+
     if(surv_arg[i].status == 0){
+
       if(surv_arg[i].id != id){
         number_alive--;
         surv_arg[i].status = 2;
+
         remove_waiting(surv_arg[i].sex);
-        break;
+
+        return surv_arg[i].id;
+      } else if (surv_arg[i].id == id && i+1 == SURVIVORS){
+        return surv_arg[i].id;
       }
+
     }
+
   }
 }
 
-/*
-Comportamento das threads de mulheres na fila de espera do carro
-*/
+// Comportamento das threads de mulheres na fila de espera do carro
 void woman_survivor(ptr_survivor_arg survivor_arg){
   pthread_mutex_lock(&line_lock);
+
   if(survivor_arg->status == 0){
     if(car_waiting){
       printf(BRIGHT_YELLOW "Sobrevivente %d |%s - MULHER|: Estou na fila de resgate\n" RESET, survivor_arg->id, survivor_arg->name);
       sleep(1);
     }
+
     while (child_shopping > 0 && car_waiting){
       pthread_cond_wait(&cw, &line_lock);
     }
@@ -505,68 +506,80 @@ void woman_survivor(ptr_survivor_arg survivor_arg){
       survivor_arg->status = 1;
       remove_waiting(survivor_arg->sex);
       printf(BRIGHT_GREEN "Sobrevivente %d |%s - MULHER|: Entrei no carro e estou salva! Agora restam apenas %d vagas no carro\n" RESET, survivor_arg->id, survivor_arg->name, capacity);
+      
       if(capacity == 0){
         car_waiting = FALSE;
         capacity = CAR_CAPACITY;
+        
         printf(BRIGHT_MAGENTA "Sobrevivente %d |%s - MULHER|: Deu ruim, o carro lotou!\n" RESET, survivor_arg->id, survivor_arg->name);
         sem_post(&wait_car);
-      }
-      else if(number_alive == 0){
+
+      } else if(number_alive == 0){
         car_waiting = FALSE;
+        
         printf(BRIGHT_MAGENTA "Não existem mais sobreviventes no shopping\n" RESET);
         sleep(2);
         sem_post(&wait_car);
+
       }
+      
       pthread_cond_broadcast(&cm);
       pthread_cond_broadcast(&cw);
     }
   }
+
   pthread_mutex_unlock(&line_lock);
 }
 
-/*
-Comportamento das threads de crianças na fila de espera do carro
-*/
+// Comportamento das threads de crianças na fila de espera do carro
 void child_survivor(ptr_survivor_arg survivor_arg){
   pthread_mutex_lock(&line_lock);
+
   if(survivor_arg->status == 0){
     if(car_waiting){
       printf(BRIGHT_YELLOW "Sobrevivente %d |%s - CRIANÇA|: Estou na fila de resgate\n" RESET, survivor_arg->id, survivor_arg->name);
       sleep(1);
+      
       capacity--;
       number_alive--;
       survivor_arg->status = 1;
+      
       remove_waiting(survivor_arg->sex);
       printf(BRIGHT_GREEN "Sobrevivente %d |%s - CRIANÇA|: Entrei no carro e estou salvo! Agora restam apenas %d vagas no carro\n" RESET, survivor_arg->id, survivor_arg->name, capacity);
+      
       if(capacity == 0){
         car_waiting = FALSE;
         capacity = CAR_CAPACITY;
         printf(BRIGHT_MAGENTA "Sobrevivente %d |%s - CRIANÇA|: Deu ruim, o carro lotou!\n" RESET, survivor_arg->id, survivor_arg->name);
         sem_post(&wait_car);
-      }
-      else if(number_alive == 0){
+
+      } else if(number_alive == 0){
         car_waiting = FALSE;
+        
         printf(BRIGHT_MAGENTA "Não existem mais sobreviventes no shopping\n" RESET);
         sleep(2);
         sem_post(&wait_car);
       }
+
       pthread_cond_broadcast(&cm);
       pthread_cond_broadcast(&cw);
     }
   }
+
   pthread_mutex_unlock(&line_lock);
 }
 
-/*
-Comportamento das threads de homens na fila de espera do carro
-*/
+// Comportamento das threads de homens na fila de espera do carro
 void man_survivor(ptr_survivor_arg survivor_arg){
   pthread_mutex_lock(&line_lock);
+
   if(survivor_arg->status == 0){
     if(car_waiting){
+      // v_man_on_line
       printf(BRIGHT_YELLOW "Sobrevivente %d |%s - HOMEM|: Estou na fila de resgate\n" RESET, survivor_arg->id, survivor_arg->name);
       sleep(1);
     }
+
     while ((child_shopping > 0 || woman_shopping > 0) && car_waiting){
       pthread_cond_wait(&cm, &line_lock);
     }
@@ -575,24 +588,29 @@ void man_survivor(ptr_survivor_arg survivor_arg){
       capacity--;
       number_alive--;
       survivor_arg->status = 1;
+    
       remove_waiting(survivor_arg->sex);
       printf(BRIGHT_GREEN "Sobrevivente %d |%s - HOMEM|: Entrei no carro e estou salvo! Agora restam apenas %d vagas no carro\n" RESET, survivor_arg->id, survivor_arg->name, capacity);
+    
       if(capacity == 0){
         car_waiting = FALSE;
         capacity = CAR_CAPACITY;
         printf(BRIGHT_MAGENTA "Sobrevivente %d |%s - HOMEM|: Deu ruim, o carro lotou!\n" RESET, survivor_arg->id, survivor_arg->name);
         sem_post(&wait_car);
-      }
-      else if(number_alive == 0){
+
+      } else if(number_alive == 0){
         car_waiting = FALSE;
+        
         printf(BRIGHT_MAGENTA "Não existem mais sobreviventes no shopping\n" RESET);
         sleep(2);
         sem_post(&wait_car);
       }
+
       pthread_cond_broadcast(&cm);
       pthread_cond_broadcast(&cw);
     }
   }
+
   pthread_mutex_unlock(&line_lock);
 }
 
@@ -607,7 +625,7 @@ void *surviving(void *arg) {
 
   while(survivor_arg->status == 0){
 
-    /* Sobreviventes esperando para subir no carro */
+    // Sobreviventes esperando para subir no carro
     if(car_waiting){
       switch (survivor_arg->sex){
         case 0:
@@ -627,56 +645,65 @@ void *surviving(void *arg) {
       }
     }
 
-    /* Sobreviventes esperando resgate e sacrificando seus colegas */
+    // Sobreviventes esperando resgate e sacrificando seus colegas
     pthread_mutex_lock(&l);
     if(survivor_arg->status == 0 && !car_waiting){
       if(food > 0){
-        printf("Sobrevivente %d | %s: Esperando resgate, ainda existem %d porções de comida para os zumbis\n", survivor_arg->id, survivor_arg->name, food);
-        sleep(1);
         food-=EAT;
-      }
-      else{
-        printf(BRIGHT_MAGENTA "Sobrevivente %d | %s: Agora existem %d porções de comida, alguém precisa ser sacrificado!\n" RESET, survivor_arg->id, survivor_arg->name, food);
+        printf("Sobrevivente %d | %s: Estou esperando o resgate e acabei de comer. Ainda tem %d porções de comida.\n", survivor_arg->id, survivor_arg->name, food);
+        sleep(1);
+
+      } else{
+        printf(BRIGHT_MAGENTA "Sobrevivente %d | %s: Ora ora ora temos um total de %d porções de comida, ALGUÉM VAI VIRAR COMIDA!\n" RESET, survivor_arg->id, survivor_arg->name, food);
+        
         id_kill = kill_somebody(survivor_arg->id);
+        
         if(id_kill == survivor_arg->id){
           printf(BRIGHT_MAGENTA "Não tem mais ninguém\n" RESET);
           sleep(2);
+
           number_alive--;
           survivor_arg->status = 3;
+          
           remove_waiting(survivor_arg->sex);
           sem_post(&wait_car);
+          
           car_waiting = FALSE;
-          printf(BRIGHT_RED "Sobrevivente |%d| %s morreu esperando o resgate\n" RESET, survivor_arg->id, survivor_arg->name);
-        }
-        else{
+          
+          printf(BRIGHT_RED "Sobrevivente |%d| %s morreu de fome esperando o resgate\n" RESET, survivor_arg->id, survivor_arg->name);
+        
+        } else{
           if(surv_arg[id_kill].sex == 2){
-            printf(BRIGHT_RED "Sobrevivente |%d| %s foi jogado aos zumbis pelo sobrevivente |%d| %s. Somou-se %d porções de comida e agora restam %d sobreviventes\n" RESET, surv_arg[id_kill].id, surv_arg[id_kill].name, survivor_arg->id, survivor_arg->name, KID_FOOD, number_alive);
+            printf(BRIGHT_RED "|%d| %s matou %s |%d|. Agora tem %d porções de comida e restam %d sobreviventes (coitada da criança)\n" RESET, survivor_arg->id, survivor_arg->name, surv_arg[id_kill].name, surv_arg[id_kill].id, KID_FOOD, number_alive);
             food += KID_FOOD;
-          }
-          else{
-            printf(BRIGHT_RED "Sobrevivente |%d| %s foi jogado aos zumbis pelo sobrevivente |%d| %s. Somou-se %d porções de comida e agora restam %d sobreviventes\n" RESET, surv_arg[id_kill].id, surv_arg[id_kill].name, survivor_arg->id, survivor_arg->name, ADULT_FOOD, number_alive);
+
+          } else{ survivor_arg->id, survivor_arg->name,
+            printf(BRIGHT_RED "|%d| %s matou %s |%d|. Agora tem %d porções de comida e restam %d sobreviventes\n" RESET, survivor_arg->id, survivor_arg->name, surv_arg[id_kill].name, surv_arg[id_kill].id, ADULT_FOOD, number_alive);
+            
             food += ADULT_FOOD;
           }
         }
+
         sleep(1);
       }
     }
 
     pthread_mutex_unlock(&l);
-    sleep(1);
+    sleep(3);
   }
+
   pthread_exit(0);
 }
 
-/*
-Gera a porção de comida inicial no shopping
-*/
+// Gera a porção de comida inicial no shopping
 void init_food(){
   srand(time(NULL));
+
   food = (rand() % 7) * 100;
-  if (food == 0){
+
+  if (food == 0)
     food = 30;
-  }
+
 }
 
 void init_globals(){
@@ -687,9 +714,7 @@ void init_globals(){
   woman_on_line = 0;
 }
 
-/*
-Inicializa as threads e inicia a simulação
-*/
+// Inicializa as threads e inicia a simulação
 int disaster(){
   int i;
 
@@ -697,11 +722,13 @@ int disaster(){
   sem_init(&wait_car, 0, 0);
 
   printf(BRIGHT_CYAN "---------------------------\n");
-  printf("\nAPOCALIPSE ZUMBI\n\n" RESET);
+  printf("\nTHE WALKING THREADS\n\n" RESET);
   printf("Um grupo de %d sobreviventes está se escondendo de uma horda de zumbis durante o apocalipse\n", SURVIVORS);
   printf("Eles estão encurralados em um shopping e precisam ser resgatados pelas pessoas que vivem no Local Seguro\n");
+  
   init_food();
-  printf("Os zumbis tem um estoque de %d porções de comida\n", food);
+  
+  printf("Os sobreviventes tem um estoque inicial de %d porções de comida\n", food);
   printf(BRIGHT_RED "Quem sobreviverá?\n\n" RESET);
 
   init_survivors();
@@ -713,6 +740,7 @@ int disaster(){
 
   car_arg.id = 0;
   car_arg.status = 0;
+
   pthread_create(&car, NULL, car_rescuing, (void *)(&(car_arg)));
 
   for (i = 0; i < SURVIVORS; i++){
@@ -726,41 +754,9 @@ int disaster(){
   return 0;
 }
 
-/*
-A main permanece em um loop de acordo com a resposta escrita pelo usuário no terminal
-*/
 int main(){
-  int continue_simulation = TRUE;
-  char input;
 
-
-  printf(BRIGHT_CYAN "---------------------------\n");
-  printf("\nTHE WALKING THREADS\n\n");
-  printf("---------------------------\n\n" RESET);
-
-  
-  do{
-
-    printf("\nDeseja iniciar a simulação? (s/n)\n");
-    scanf("%c", &input);
-    getchar();
-
-    while(input != 's' && input != 'S' && input!= 'n' && input != 'N'){
-      printf("\nInsira os caracteres 's/S' ou 'n/N'\n");
-      printf("Deseja iniciar a simulação? (s/n)\n");
-      scanf("%c", &input);
-      getchar();
-    }
-
-    if(input == 'n' || input == 'N'){
-      continue_simulation = FALSE;
-    }
-    else{
-      clrscr();
-      disaster();
-    }
-  } while (continue_simulation);
-  
+  disaster();
 
   return 0;
 }
