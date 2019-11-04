@@ -11,9 +11,9 @@ Os sobreviventes e o carro serão threads e a comida o rescurso compartilhado. S
 # Para compilar e executar o programa execute os seguintes comandos no terminal:
 
 ```
-"gcc -ansi -Wall -o walking walking.c -lpthread"
+gcc -ansi -Wall -o walking walking.c -lpthread
 
-"./walking"
+./walking
 ```
 
 # Alunos:
