@@ -703,7 +703,6 @@ void init_food(){
 
   if (food == 0)
     food = 30;
-
 }
 
 void init_globals(){
