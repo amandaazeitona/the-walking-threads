@@ -89,7 +89,7 @@ char woman_names[50][20] = {
     "Lana Del Rey",        // 5
     "Bella",               // 6
     "Jéssica",             // 7
-    "Shoshana",  		       // 8
+    "Shoshana",  		   // 8
     "Leia",                // 9
     "Dilma",       	       // 10
     "Alba",                // 11
@@ -205,7 +205,7 @@ char child_names[50][20] = {
     "Drummond",             // 13
     "Bruno",                // 14
     "Dibio",                // 15
-    "Alchieri",             // 16
+    "Wumpus",               // 16
     "Astrix",               // 17
     "Vidal",                // 18
     "Flavio",               // 19
@@ -214,7 +214,7 @@ char child_names[50][20] = {
     "Li",                   // 22
     "Roberlândio",          // 23
     "Pai Mei",              // 24
-	  "Tina",                 // 25
+	"Tina",                 // 25
     "Cate",                 // 26
     "Natalie",              // 27
     "Emma",                 // 28
