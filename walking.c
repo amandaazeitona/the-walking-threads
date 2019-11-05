@@ -20,7 +20,7 @@ TRABALHO DE PROGRAMAÇÃO CONCORRENTE - 2/2019
 #define ADULT_FOOD 200  // Porções de comida que um adulto morto gera
 #define KID_FOOD 100    // Porções de comida que uma criança morta gera
 #define CAR_CAPACITY 4 	// Número de vagas disponíveis no carro inicialmente
-#define EAT 20          // Quantidade de porções comidas de uma vez por um zumbi
+#define EAT 20          // Quantidade de porções comidas de uma vez por alguém
 
 // Cores:
 #define GREEN "\x1b[32m"
@@ -259,7 +259,7 @@ void print_status(int status){
       break;
 
     case 2:
-      printf(BRIGHT_RED "MORTO - Virou comida do grupo!" RESET);
+      printf(BRIGHT_RED "MORTO - Virou comida!" RESET);
       break;
 
     case 3:
@@ -430,10 +430,10 @@ void *car_rescuing(void *arg){
     rescue_car_arg->status = 1;
 
     if(number_alive == 0){
-      printf(BRIGHT_CYAN "\nCarro de Resgate %d: Cheguei no shopping mas num tem ninguém aqui não, vô meter o pé, vlw flw\n\n" RESET, rescue_car_arg->id);
+      printf(BRIGHT_CYAN "\nCarro de Resgate %d: Cheguei no shopping mas não tem ninguém aqui, vô meter o pé, vlw flw\n\n" RESET, rescue_car_arg->id);
       sleep(2);
     } else{
-      printf(BRIGHT_CYAN "\nCarro de Resgate %d: Cheguei no shopping, esperando sobreviventes embarcarem\n\n" RESET, rescue_car_arg->id);
+      printf(BRIGHT_CYAN "\nCarro de Resgate %d: Cheguei no shopping, esperando os sobreviventes embarcarem\n\n" RESET, rescue_car_arg->id);
     }
 
     sem_wait(&wait_car);
@@ -674,11 +674,11 @@ void *surviving(void *arg) {
         
         } else{
           if(surv_arg[id_kill].sex == 2){
-            printf(BRIGHT_RED "|%d| %s matou %s |%d|. Agora tem %d porções de comida e restam %d sobreviventes (coitada da criança)\n" RESET, survivor_arg->id, survivor_arg->name, surv_arg[id_kill].name, surv_arg[id_kill].id, KID_FOOD, number_alive);
+            printf(BRIGHT_RED "|%d| %s matou %s |%d|. Agora existem %d porções de comida e restam %d sobreviventes\n" RESET, survivor_arg->id, survivor_arg->name, surv_arg[id_kill].name, surv_arg[id_kill].id, KID_FOOD, number_alive);
             food += KID_FOOD;
 
           } else{ survivor_arg->id, survivor_arg->name,
-            printf(BRIGHT_RED "|%d| %s matou %s |%d|. Agora tem %d porções de comida e restam %d sobreviventes\n" RESET, survivor_arg->id, survivor_arg->name, surv_arg[id_kill].name, surv_arg[id_kill].id, ADULT_FOOD, number_alive);
+            printf(BRIGHT_RED "|%d| %s matou %s |%d|. Agora existem %d porções de comida e restam %d sobreviventes\n" RESET, survivor_arg->id, survivor_arg->name, surv_arg[id_kill].name, surv_arg[id_kill].id, ADULT_FOOD, number_alive);
             
             food += ADULT_FOOD;
           }
@@ -724,7 +724,7 @@ int disaster(){
   printf(BRIGHT_CYAN "---------------------------\n");
   printf("\nTHE WALKING THREADS\n\n" RESET);
   printf("Um grupo de %d sobreviventes está se escondendo de uma horda de zumbis durante o apocalipse\n", SURVIVORS);
-  printf("Eles estão encurralados em um shopping e precisam ser resgatados pelas pessoas que vivem no Local Seguro\n");
+  printf("Eles estão encurralados em um shopping abandonado e precisam ser resgatados pelas pessoas que vivem no Local Seguro\n");
   
   init_food();
   
